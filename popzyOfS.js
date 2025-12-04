@@ -136,7 +136,7 @@ Popzy.prototype.open = function () {
         document.addEventListener("keydown", this._handleEscapeKey);
     }
 
-    this._onTransitionEnd(this.opt.onOpen);
+    this.opt.onOpen.call(this);
 
     return this._backdrop;
 };
@@ -149,10 +149,10 @@ Popzy.prototype._handleEscapeKey = function (e) {
 };
 
 Popzy.prototype._onTransitionEnd = function (callback) {
-    this._backdrop.ontransitionend = (e) => {
+    this._backdrop.addEventListener("transitionend", function (e) {
         if (e.propertyName !== "transform") return;
         if (typeof callback === "function") callback();
-    };
+    });
 };
 
 Popzy.prototype.close = function (destroy = this.opt.destroyOnClose) {
@@ -177,7 +177,7 @@ Popzy.prototype.close = function (destroy = this.opt.destroyOnClose) {
             document.body.style.paddingRight = "";
         }
 
-        if (typeof this.opt.onClose === "function") this.opt.onClose();
+        if (typeof this.opt.onClose === "function") this.opt.onClose.call(this);
     });
 };
 
@@ -201,4 +201,3 @@ Popzy.prototype._getScrollbarWidth = function () {
 
     return this._scrollbarWidth;
 };
-
