@@ -23,24 +23,26 @@
 .popzy__container {
     position: relative;
     width: min(600px, 90%);
-    padding: 20px 20px;
+    padding: 35px 35px 20px 20px;
     border-radius: 6px;
     background: #fff;
     transform: scale(0);
     transition: transform 0.3s;
 }
 
-/* .popzy__close {
+.popzy__close {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 6px;
+    right: 6px;
     width: 30px;
     height: 30px;
     border-radius: 50%;
     color: #666;
     background: #ebebeb;
     font-size: 2rem;
-} */
+    cursor: pointer;
+    transition: 0.5s;
+}
 
 .popzy__close:hover {
     color: #333;
@@ -48,14 +50,17 @@
 
 .popzy__content {
     max-height: 80vh;
+    padding-right: 10px;
     overflow-y: auto;
 }
 
 .popzy__footer {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
-    padding: 20px 0;
+    padding: 20px 0 10px;
 }
 
 .popzy--no-scroll {

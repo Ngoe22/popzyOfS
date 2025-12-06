@@ -6,6 +6,9 @@ Popzy.elements = [];
 function Popzy(options = {}) {
     this.opt = Object.assign(
         {
+            // content : required
+            // templateId : required
+            //
             destroyOnClose: true,
             footer: false,
             cssClass: [],
@@ -13,10 +16,17 @@ function Popzy(options = {}) {
         },
         options
     );
-    this.template = $(`#${this.opt.templateId}`);
 
-    if (!this.template) {
-        console.error(`#${this.opt.templateId} does not exist!`);
+    if (this.opt.content) {
+        this.contentHtml = this.opt.content;
+    } else if (this.opt.templateId) {
+        this.template = $(`#${this.opt.templateId}`);
+        if (!this.template) {
+            console.error(`#${this.opt.templateId} does not exist!`);
+            return;
+        }
+    } else {
+        console.error(` content and template of this button does not exist!`);
         return;
     }
 
@@ -31,7 +41,12 @@ function Popzy(options = {}) {
 }
 
 Popzy.prototype._build = function () {
-    const content = this.template.content.cloneNode(true);
+    if (this.contentHtml) {
+        var content = document.createElement(`div`);
+        content.innerHTML = this.contentHtml;
+    } else {
+        var content = this.template.content.cloneNode(true);
+    }
 
     // Create modal elements
     this._backdrop = document.createElement("div");
@@ -79,23 +94,9 @@ Popzy.prototype.setFooterContent = function (html) {
     this._renderFooterContent();
 };
 
-Popzy.prototype.addFooterButton = function (title, cssClass, callback) {
-    const button = this._createButton(title, cssClass, callback);
-    this._footerButtons.push(button);
-    this._renderFooterButtons();
-};
-
 Popzy.prototype._renderFooterContent = function () {
     if (this._modalFooter && this._footerContent) {
         this._modalFooter.innerHTML = this._footerContent;
-    }
-};
-
-Popzy.prototype._renderFooterButtons = function () {
-    if (this._modalFooter) {
-        this._footerButtons.forEach((button) => {
-            this._modalFooter.append(button);
-        });
     }
 };
 
@@ -106,6 +107,20 @@ Popzy.prototype._createButton = function (title, cssClass, callback) {
     button.onclick = callback;
 
     return button;
+};
+
+Popzy.prototype.addFooterButton = function (title, cssClass, callback) {
+    const button = this._createButton(title, cssClass, callback);
+    this._footerButtons.push(button);
+    this._renderFooterButtons();
+};
+
+Popzy.prototype._renderFooterButtons = function () {
+    if (this._modalFooter) {
+        this._footerButtons.forEach((button) => {
+            this._modalFooter.append(button);
+        });
+    }
 };
 
 Popzy.prototype.open = function () {
@@ -149,10 +164,13 @@ Popzy.prototype._handleEscapeKey = function (e) {
 };
 
 Popzy.prototype._onTransitionEnd = function (callback) {
-    this._backdrop.addEventListener("transitionend", function (e) {
+    const handler = (e) => {
         if (e.propertyName !== "transform") return;
+        this._backdrop.removeEventListener("transitionend", handler);
         if (typeof callback === "function") callback();
-    });
+    };
+
+    this._backdrop.addEventListener(`transitionend`, handler);
 };
 
 Popzy.prototype.close = function (destroy = this.opt.destroyOnClose) {
@@ -177,7 +195,9 @@ Popzy.prototype.close = function (destroy = this.opt.destroyOnClose) {
             document.body.style.paddingRight = "";
         }
 
-        if (typeof this.opt.onClose === "function") this.opt.onClose.call(this);
+        if (typeof this.opt.onClose === "function") {
+            this.opt.onClose.call(this);
+        }
     });
 };
 
