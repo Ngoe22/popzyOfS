@@ -12,6 +12,10 @@ function Popzy(options = {}) {
             destroyOnClose: true,
             footer: false,
             cssClass: [],
+            enableScrollLock: true,
+            scrollLockTarget: function () {
+                return document.body;
+            },
             closeMethods: ["button", "overlay", "escape"],
         },
         options
@@ -35,8 +39,12 @@ function Popzy(options = {}) {
     this._allowBackdropClose = closeMethods.includes("overlay");
     this._allowEscapeClose = closeMethods.includes("escape");
 
-    this._footerButtons = [];
+    // scroll handle
+    this._scrollLockTarget = this.opt.scrollLockTarget();
+    this._enableScrollLock = this.opt.enableScrollLock;
+    this._isTargetHavingScrollBar = this._hasScrollBar(this._scrollLockTarget);
 
+    this._footerButtons = [];
     this._handleEscapeKey = this._handleEscapeKey.bind(this);
 }
 
@@ -135,8 +143,25 @@ Popzy.prototype.open = function () {
     }, 0);
 
     // Disable scrolling
-    document.body.classList.add("popzy--no-scroll");
-    document.body.style.paddingRight = this._getScrollbarWidth() + "px";
+
+    if (this._enableScrollLock && this._isTargetHavingScrollBar) {
+        const target = this._scrollLockTarget;
+
+        console.log(target);
+
+        this._scrollLockTargetPaddingRight = parseInt(
+            window.getComputedStyle(target).paddingRight
+        );
+        console.log(this._scrollLockTargetPaddingRight);
+        target.classList.add("popzy--no-scroll");
+
+        console.log(target.classList);
+
+        target.style.paddingRight =
+            this._scrollLockTargetPaddingRight +
+            this._getScrollbarWidth(target) +
+            "px";
+    }
 
     // Attach event listeners
     if (this._allowBackdropClose) {
@@ -190,9 +215,14 @@ Popzy.prototype.close = function (destroy = this.opt.destroyOnClose) {
         }
 
         // Enable scrolling
-        if (!Popzy.elements.length) {
-            document.body.classList.remove("popzy--no-scroll");
-            document.body.style.paddingRight = "";
+        if (
+            this._enableScrollLock &&
+            this._isTargetHavingScrollBar &&
+            !Popzy.elements.length
+        ) {
+            const target = this._scrollLockTarget;
+            target.classList.remove("popzy--no-scroll");
+            target.style.paddingRight = "";
         }
 
         if (typeof this.opt.onClose === "function") {
@@ -205,7 +235,7 @@ Popzy.prototype.destroy = function () {
     this.close(true);
 };
 
-Popzy.prototype._getScrollbarWidth = function () {
+Popzy.prototype._getScrollbarWidth = function (target) {
     if (this._scrollbarWidth) return this._scrollbarWidth;
 
     const div = document.createElement("div");
@@ -215,9 +245,21 @@ Popzy.prototype._getScrollbarWidth = function () {
         top: "-9999px",
     });
 
-    document.body.appendChild(div);
+    target.appendChild(div);
     this._scrollbarWidth = div.offsetWidth - div.clientWidth;
-    document.body.removeChild(div);
+    target.removeChild(div);
 
     return this._scrollbarWidth;
+};
+
+Popzy.prototype._hasScrollBar = function (target) {
+    if ([document.documentElement, document.body].includes(target)) {
+        return (
+            document.documentElement.scrollHeight !==
+                document.documentElement.clientHeight ||
+            document.body.scrollHeight !== document.body.clientHeight
+        );
+    }
+
+    return target.scrollHeight !== target.clientHeight;
 };
