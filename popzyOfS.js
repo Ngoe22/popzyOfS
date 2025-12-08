@@ -144,7 +144,11 @@ Popzy.prototype.open = function () {
 
     // Disable scrolling
 
-    if (this._enableScrollLock && this._isTargetHavingScrollBar) {
+    if (
+        this._enableScrollLock &&
+        Popzy.elements.length === 1 &&
+        this._isTargetHavingScrollBar
+    ) {
         const target = this._scrollLockTarget;
 
         console.log(target);
